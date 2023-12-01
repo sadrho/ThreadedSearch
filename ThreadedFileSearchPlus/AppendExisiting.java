@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.*;
 
 public class AppendExisiting {
+    private static String fileSeparator = System.getProperty("file.separator");
     private static int copyCount = 0;
     private static String testResetCount = null;
     public static Path appendExisiting(File f,Path d){
@@ -15,10 +16,10 @@ public class AppendExisiting {
         String fileName = f.toPath().getFileName().toString();
         
         StringBuilder destinationPath = new StringBuilder();
-        if(d.toString().endsWith("/")){
+        if(d.toString().endsWith(fileSeparator)){
             destinationPath.append(d+String.format("%s",fileName));
-        }else if(!d.toString().endsWith("/")){
-            destinationPath.append(d+String.format("/%s",fileName));
+        }else if(!d.toString().endsWith(fileSeparator)){
+            destinationPath.append(d+String.format("%s%s",fileSeparator,fileName));
         }
         
         StringBuilder modifiedPath = new StringBuilder();
