@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TheGuardedBlocks {
     private Boolean run = true;
+    private Boolean isEmpty = true;
     private Boolean searching =true;
     private static Integer bListNumber = 0;
     private static Integer cListNumber = 0;
@@ -26,7 +27,7 @@ public class TheGuardedBlocks {
         originalFilePath.put(originalFileNum,file);
     }
     public Boolean isCopyEmpty(){
-        Boolean isEmpty = null;
+        
         if(copyList.size() == 0){
             isEmpty = true;
         }else{
@@ -38,6 +39,12 @@ public class TheGuardedBlocks {
     
     public String getWhereToSend(){
         return whereToSend;
+    }
+    public void clearCopyList(){
+        copyList.clear();
+    }
+    public int getcListNumber(){
+        return cListNumber;
     }
 
     public void waitForCopyToEmpty(){
@@ -90,6 +97,16 @@ public class TheGuardedBlocks {
         
         bListNumber++;
         return returnPath;
+    }
+    public void searchStatusToggle(){
+        if(searching){
+            searching = false;
+        }else{
+            searching = true;
+        }
+    }
+    public Boolean getSearchStatus(){
+        return searching;
     }
     public Path removeFromOriginalPath(){
         if(originalFilePath.size() > 0){

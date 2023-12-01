@@ -144,11 +144,11 @@ public class SearchThread implements Runnable{
             Files.walkFileTree(Paths.get(h.directoryToSearch),h);
         }catch(IOException e){
             System.out.println("Failed to find directory");
-        }
-       
-        
+        }        
         synchronized(blocks){
+            blocks.searchStatusToggle();
             blocks.waitForCopyToEmpty();
+            blocks.runStatusToggle();
             blocks.notifyAll();
         }
     }

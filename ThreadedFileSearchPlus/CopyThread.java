@@ -9,12 +9,15 @@ import java.nio.file.Paths;
 
 public class CopyThread implements Runnable{
     TheGuardedBlocks blocks;
+    int numberCopied = 0;
     CopyThread(TheGuardedBlocks blocks){
         this.blocks = blocks;
     }
     public void run(){
+        Boolean searchStatus = true;
         blocks.waitingForFileFromSearch();
-        while(blocks.runStatus()){
+        do{
+
             try{
             Thread.sleep(0,50);
             }catch(InterruptedException e){
@@ -22,9 +25,23 @@ public class CopyThread implements Runnable{
             }
         Path o = blocks.removeFromOriginalPath();
         Path h = blocks.removeFromCopyList();
-        copy(h,o);
+        if(o == null | h == null){
+            try{
+                wait();
+            }catch(InterruptedException e){
+                e.printStackTrace();
+                System.exit(-1);
+            }
         }
+        copy(h,o);
+        numberCopied++;
         synchronized(blocks){
+            searchStatus = blocks.getSearchStatus();
+        }
+        }while(numberCopied != blocks.getcListNumber() && !searchStatus);
+
+        synchronized(blocks){
+            blocks.clearCopyList();
             blocks.copyStatusToggle();
             blocks.notifyAll();
         }
