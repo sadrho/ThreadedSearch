@@ -14,34 +14,40 @@ public class CopyThread implements Runnable{
         this.blocks = blocks;
     }
     public void run(){
-        Boolean searchStatus = true;
+        
         blocks.waitingForFileFromSearch();
         do{
-
+            
             try{
-            Thread.sleep(0,50);
+                if(!blocks.getSearchStatus()){
+                    Thread.sleep(0,50);
+                }
             }catch(InterruptedException e){
                 e.printStackTrace();
             }
-        Path o = blocks.removeFromOriginalPath();
-        Path h = blocks.removeFromCopyList();
-        if(o == null | h == null){
-            try{
-                wait();
-            }catch(InterruptedException e){
-                e.printStackTrace();
-                System.exit(-1);
-            }
+            Path ori = blocks.removedFromNewCopyList();
+            Path dest = blocks.removeFromModifiedPath();
+        // Path o = blocks.removeFromOriginalPath();
+        // Path h = blocks.removeFromCopyList();
+        // if(o == null | h == null){
+        //     try{
+        //         wait();
+        //     }catch(InterruptedException e){
+        //         e.printStackTrace();
+        //         System.exit(-1);
+        //     }
+        // }
+        if(ori != null && dest != null){
+            copy(ori,dest);
+            numberCopied++;
+        }else{
+            System.exit(-1);
         }
-        copy(h,o);
-        numberCopied++;
-        synchronized(blocks){
-            searchStatus = blocks.getSearchStatus();
-        }
-        }while(numberCopied != blocks.getcListNumber() && !searchStatus);
+        
+        }while(blocks.getSearchStatus());
 
         synchronized(blocks){
-            blocks.clearCopyList();
+            // blocks.clearCopyList();
             blocks.copyStatusToggle();
             blocks.notifyAll();
         }
@@ -50,7 +56,7 @@ public class CopyThread implements Runnable{
         try{
             if(file != null)
             System.err.println("LOOOKKKKKKKKK AA A A TTTTT THIIISSS: " +file.getFileName().toString());
-        Files.copy(original.toAbsolutePath(),Paths.get(blocks.getWhereToSend()+file.getFileName().toString()));
+        Files.copy(file.toAbsolutePath(),original.toAbsolutePath());
         
         
         }catch(AccessDeniedException e){

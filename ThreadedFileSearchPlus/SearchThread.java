@@ -20,12 +20,14 @@ public class SearchThread implements Runnable{
         this.blocks = blocks;
     }
     class ClimbingTree extends SimpleFileVisitor<Path>{
+        
         String directoryToSearch = whatToFind();
         String whatToFind = whatToFind();
         String whereToSend = whatToFind();
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attr){
+            
             String finding = whatToFind;
             if(finding == null){
                 System.out.println("Value to find must not be null...");
@@ -41,9 +43,11 @@ public class SearchThread implements Runnable{
                         modifiedExisiting = AppendExisiting.appendExisiting
                         (file.toFile(),Paths.get(whereToSend));
                         synchronized(blocks){ 
-                            blocks.addToOriginalPath(file);
-                            blocks.setWhereToSend(whereToSend);                           
-                            blocks.addToCopyList(modifiedExisiting);
+                           
+                            // blocks.addToOriginalPath(file);
+                            // blocks.setWhereToSend(whereToSend);                           
+                            blocks.addToNewCopyList(file);
+                            blocks.addToNewPath(modifiedExisiting);
                             blocks.notifyAll();
                         }
                         
@@ -52,9 +56,11 @@ public class SearchThread implements Runnable{
                         // (whereToSend+file.toString()));
                         
                         synchronized(blocks){
-                            blocks.addToOriginalPath(file);
+                            // blocks.addToOriginalPath(file);
                             blocks.setWhereToSend(whereToSend); 
-                            blocks.addToCopyList(file);                            
+                            blocks.addToNewCopyList(file);
+                            blocks.addToNewPath(Paths.get(whereToSend+file.getFileName()));
+                            // blocks.addToCopyList(file);                            
                             blocks.notifyAll();
                         }
                     }
@@ -73,6 +79,11 @@ public class SearchThread implements Runnable{
         }
         public FileVisitResult visitFile(Path file, BasicFileAttributes attr,
         EnumSet<FileVisitOption> opts,int depth){ 
+            if(blocks.getSearchStatus()){
+
+            }else{
+                blocks.searchStatusToggle();
+            }
             String finding = whatToFind;       
             Path modifiedExisiting = null;
             if(Files.isSymbolicLink(file)){
@@ -141,6 +152,9 @@ public class SearchThread implements Runnable{
     public void run(){
         ClimbingTree h = new ClimbingTree();
         try{
+            synchronized(blocks){
+            blocks.searchStatusToggle();
+            }
             Files.walkFileTree(Paths.get(h.directoryToSearch),h);
         }catch(IOException e){
             System.out.println("Failed to find directory");

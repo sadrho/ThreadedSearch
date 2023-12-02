@@ -1,13 +1,18 @@
 package ThreadStuff.ThreadedFileSearchPlus;
 
 import java.nio.file.Path;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 public class TheGuardedBlocks {
+    private static BlockingQueue<Path> newCopyList = new SynchronousQueue<>();
+    private static BlockingQueue<Path> newModifiedPath = new SynchronousQueue<>();
     private Boolean run = true;
     private Boolean isEmpty = true;
-    private Boolean searching =true;
+    private static Boolean searching =false;
     private static Integer bListNumber = 0;
     private static Integer cListNumber = 0;
     private static Integer mListNumber = 0;
@@ -21,6 +26,44 @@ public class TheGuardedBlocks {
     public void addToCopyList(Path file){
         copyList.put(cListNumber,file);        
         cListNumber++;
+    }
+    public int getCopyListCapacity(){
+        int retInt = newCopyList.remainingCapacity();
+        return retInt;
+    }
+    public void addToNewCopyList(Path file){
+        try{
+            newCopyList.offer(file,10,TimeUnit.SECONDS);
+                
+                
+        }catch(InterruptedException e){
+            e.printStackTrace();
+        }
+    }
+    public Path removedFromNewCopyList(){
+        Path retPath = null;
+        try{
+            retPath = newCopyList.poll(10,TimeUnit.SECONDS);
+        }catch(InterruptedException e){
+            e.printStackTrace();
+        }
+        return retPath;
+    }
+    public Path removeFromModifiedPath(){
+        Path retPath = null;
+        try{
+            retPath = newModifiedPath.poll(10,TimeUnit.SECONDS);
+        }catch(InterruptedException e){
+            e.printStackTrace();
+        }
+        return retPath;
+    }
+    public void addToNewPath(Path file){
+        try{
+            newModifiedPath.offer(file,10,TimeUnit.SECONDS);
+        }catch(InterruptedException e){
+            e.printStackTrace();
+        }
     }
     public void addToOriginalPath(Path file){
         int originalFileNum = cListNumber;
@@ -104,6 +147,7 @@ public class TheGuardedBlocks {
         }else{
             searching = true;
         }
+        notifyAll();
     }
     public Boolean getSearchStatus(){
         return searching;
@@ -139,7 +183,7 @@ public class TheGuardedBlocks {
 
     public synchronized void waitingForFileFromSearch(){
         
-            while(copyList.size() <= 0){
+            while(!searching){
                 try{
                     if(run)
                     wait();
